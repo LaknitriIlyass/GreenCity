@@ -1,0 +1,53 @@
+extends layout
+
+block content
+
+  div.container.text-center
+    h1.display-3.mb-4 Green City 🌍
+
+    div.search-box.position-relative.d-inline-block.w-50
+
+      input.search-input.form-control(
+        type="text",
+        placeholder="Inserisci una città..."
+      )
+
+      div.suggestions.position-absolute.w-100.bg-white.border.mt-1
+
+    script.
+        const input = document.querySelector(".search-input");
+        const suggestions = document.querySelector(".suggestions");
+
+        let timeout;
+
+        input.addEventListener("input", () => {
+            clearTimeout(timeout);
+
+            const query = input.value;
+
+            if (query.length < 2) {
+            suggestions.innerHTML = "";
+            return;
+            }
+
+            timeout = setTimeout(async () => {
+            const res = await fetch(`/api/citta?q=${query}`);
+            const cities = await res.json();
+
+            suggestions.innerHTML = "";
+
+            cities.forEach(city => {
+                const div = document.createElement("div");
+                div.classList.add("p-2");
+                div.style.cursor = "pointer";
+                div.textContent = city;
+
+                div.addEventListener("click", () => {
+                window.location.href = `/citta/${city}`;
+                });
+
+                suggestions.appendChild(div);
+            });
+
+            }, 300);
+        });
