@@ -1,0 +1,28 @@
+extends layout
+
+block content
+
+  div.login-page
+    div.login-card
+
+      h2 Login
+      p.login-subtitle Accedi al tuo account Green City
+
+      if errore
+        div.login-error #{errore}
+
+      form(action="/login" method="POST")
+
+        div.form-group
+          label Email
+          input(type="email" name="email" placeholder="Inserisci la tua email" required)
+
+        div.form-group
+          label Password
+          input(type="password" name="password" placeholder="Inserisci la password" required)
+
+        button.login-btn(type="submit") Accedi
+
+      p.register-text
+        | Non sei ancora registrato? 
+        a(href="/registrazione") Registrati

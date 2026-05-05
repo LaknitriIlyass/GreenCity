@@ -62,6 +62,68 @@ app.get('/api/citta', async (req, res) => {
     }
 });
 
+//rotta login
+app.get('/login', (req, res) => {
+    res.render('login');
+});
+
+//rotta per controllare il login
+app.post('/login', (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    const utenti = JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
+
+    const utenteTrovato = utenti.find(function(utente) {
+        return utente.email === email && utente.password === password;
+    });
+
+    if (!utenteTrovato) {
+        return res.render('login', {
+            errore: 'Email o password non corretti'
+        });
+    }
+
+    res.redirect('/');
+});
+
+// rotta per vedere la pagina registrazione
+app.get('/registrazione', (req, res) => {
+    res.render('registrazione');
+});
+
+// rotta per salvare i dati della registrazione
+app.post('/registrazione', (req, res) => {
+    const nome = req.body.nome;
+    const email = req.body.email;
+    const password = req.body.password;
+
+    const utenti = JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
+
+    const utenteEsistente = utenti.find(function(utente) {
+        return utente.email === email;
+    });
+
+    if (utenteEsistente) {
+        return res.render('registrazione', {
+            errore: 'Questa email è già registrata'
+        });
+    }
+
+    const nuovoUtente = {
+        id: Date.now(),
+        nome: nome,
+        email: email,
+        password: password
+    };
+
+    utenti.push(nuovoUtente);
+
+    fs.writeFileSync(FILE_PATH, JSON.stringify(utenti, null, 2));
+
+    res.redirect('/login');
+});
+
 app.listen(3000, () => {
     console.log('Server avviato su http://localhost:3000');
 });
