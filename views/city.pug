@@ -1,0 +1,241 @@
+extends layout
+
+block content
+
+  div.container.mt-4.mb-5
+
+    //- Intestazione
+    div.mb-4
+      a.btn.btn-sm.btn-outline-secondary.mb-3(href="/") ← Torna alla home
+      h1.mb-0 #{nome}
+      p.text-muted #{paese}
+
+    //- ── AQI principale ─────────────────────────────────────────
+    div.card.border-0.shadow-sm.mb-4
+      div.card-body.py-4
+        div.row.align-items-center
+          div.col-md-4.text-center.mb-3.mb-md-0
+            p.text-muted.small.text-uppercase.fw-semibold.mb-1 Indice AQI europeo
+            div.display-1.fw-bold(class=`text-${aria.livello.classe}`) #{aria.aqi}
+            span.badge.fs-6.mt-1(class=`bg-${aria.livello.classe}`) #{aria.livello.emoji} #{aria.livello.testo}
+          div.col-md-8
+            //- Barra AQI visiva
+            p.small.fw-semibold.mb-1 Posizione sulla scala
+            div.progress.mb-3(style="height:20px; border-radius:10px; background: linear-gradient(to right,#198754,#0dcaf0,#ffc107,#fd7e14,#dc3545)")
+              div.position-relative(style=`margin-left: calc(${Math.min(aria.aqi, 100)}% - 12px); width:24px; height:20px;`)
+                span(style="font-size:18px; line-height:20px;") ▼
+            div.d-flex.justify-content-between.small.text-muted
+              span 0 Buona
+              span 20
+              span 40
+              span 60
+              span 80
+              span 100+
+            p.text-muted.small.mt-2.mb-0
+              | Dati aggiornati ogni ora · Fonte:&nbsp;
+              a(href="https://open-meteo.com" target="_blank") Open-Meteo Air Quality
+
+    //- ── Inquinanti attuali ──────────────────────────────────────
+    h5.fw-bold.mb-3 Inquinanti attuali
+    div.row.g-3.mb-4
+
+      div.col-6.col-lg-3
+        div.card.h-100.border-0.shadow-sm
+          div.card-body
+            div.d-flex.justify-content-between.align-items-start
+              div
+                p.text-muted.small.mb-1 PM2.5
+                h4.fw-bold.mb-0 #{aria.pm25}
+                span.text-muted.small µg/m³
+              span.fs-4 
+            p.text-muted.small.mt-2.mb-0 Particelle fini · limite OMS: 15
+
+      div.col-6.col-lg-3
+        div.card.h-100.border-0.shadow-sm
+          div.card-body
+            div.d-flex.justify-content-between.align-items-start
+              div
+                p.text-muted.small.mb-1 PM10
+                h4.fw-bold.mb-0 #{aria.pm10}
+                span.text-muted.small µg/m³
+              span.fs-4 
+            p.text-muted.small.mt-2.mb-0 Polveri grossolane · limite OMS: 45
+
+      div.col-6.col-lg-3
+        div.card.h-100.border-0.shadow-sm
+          div.card-body
+            div.d-flex.justify-content-between.align-items-start
+              div
+                p.text-muted.small.mb-1 NO₂
+                h4.fw-bold.mb-0 #{aria.no2}
+                span.text-muted.small µg/m³
+              span.fs-4 
+            p.text-muted.small.mt-2.mb-0 Traffico e combustioni
+
+      div.col-6.col-lg-3
+        div.card.h-100.border-0.shadow-sm
+          div.card-body
+            div.d-flex.justify-content-between.align-items-start
+              div
+                p.text-muted.small.mb-1 O₃ Ozono
+                h4.fw-bold.mb-0 #{aria.o3}
+                span.text-muted.small µg/m³
+              span.fs-4 
+            p.text-muted.small.mt-2.mb-0 Si forma con calore e luce
+
+      div.col-6.col-lg-3
+        div.card.h-100.border-0.shadow-sm
+          div.card-body
+            div.d-flex.justify-content-between.align-items-start
+              div
+                p.text-muted.small.mb-1 SO₂
+                h4.fw-bold.mb-0 #{aria.so2}
+                span.text-muted.small µg/m³
+              span.fs-4 
+            p.text-muted.small.mt-2.mb-0 Industrie e centrali
+
+      div.col-6.col-lg-3
+        div.card.h-100.border-0.shadow-sm
+          div.card-body
+            div.d-flex.justify-content-between.align-items-start
+              div
+                p.text-muted.small.mb-1 CO
+                h4.fw-bold.mb-0 #{aria.co}
+                span.text-muted.small µg/m³
+              span.fs-4 
+            p.text-muted.small.mt-2.mb-0 Combustioni incomplete
+
+      div.col-6.col-lg-3
+        div.card.h-100.border-0.shadow-sm
+          div.card-body
+            div.d-flex.justify-content-between.align-items-start
+              div
+                p.text-muted.small.mb-1 Polveri
+                h4.fw-bold.mb-0 #{aria.polveri}
+                span.text-muted.small µg/m³
+              span.fs-4 
+            p.text-muted.small.mt-2.mb-0 Polveri minerali e sabbia
+
+      div.col-6.col-lg-3
+        div.card.h-100.border-0.shadow-sm
+          div.card-body
+            div.d-flex.justify-content-between.align-items-start
+              div
+                p.text-muted.small.mb-1 Indice UV
+                h4.fw-bold.mb-0 #{aria.uv}
+              span.fs-4 
+            p.text-muted.small.mt-2.mb-0 Radiazione ultravioletta
+
+    //- ── Grafici ultimi 7 giorni ─────────────────────────────────
+    h5.fw-bold.mb-3 Andamento ultimi 7 giorni
+
+    //- Selettore grafico
+    div.btn-group.mb-3(role="group")
+      button.btn.btn-sm.btn-primary#btnAqi(type="button") AQI
+      button.btn.btn-sm.btn-outline-secondary#btnPm(type="button") PM2.5 / PM10
+      button.btn.btn-sm.btn-outline-secondary#btnGas(type="button") NO₂ / O₃
+
+    div.card.border-0.shadow-sm.mb-4
+      div.card-body
+        canvas#grafico(height="100")
+
+    //- ── Meteo ──────────────────────────────────────────────────
+    h5.fw-bold.mb-3 Condizioni meteo
+    div.row.g-3
+      div.col-6.col-md-3
+        div.card.border-0.shadow-sm
+          div.card-body.text-center
+            p.text-muted.small.mb-1  Temperatura
+            h4.fw-bold.mb-0 #{meteo.temperature}°C
+      div.col-6.col-md-3
+        div.card.border-0.shadow-sm
+          div.card-body.text-center
+            p.text-muted.small.mb-1  Vento
+            h4.fw-bold.mb-0 #{meteo.windspeed} km/h
+      div.col-6.col-md-3
+        div.card.border-0.shadow-sm
+          div.card-body.text-center
+            p.text-muted.small.mb-1  Direzione
+            h4.fw-bold.mb-0 #{meteo.winddirection}°
+
+block scripts
+  script(src="https://cdn.jsdelivr.net/npm/chart.js")
+  script.
+    const storico = !{storico};
+
+    const ctx = document.getElementById('grafico').getContext('2d');
+
+    // Dataset per ogni vista
+    const datasets = {
+      aqi: [{
+        label: 'AQI europeo',
+        data: storico.aqi,
+        borderColor: '#0d6efd',
+        backgroundColor: 'rgba(13,110,253,0.1)',
+        fill: true, tension: 0.3
+      }],
+      pm: [
+        {
+          label: 'PM2.5 (µg/m³)',
+          data: storico.pm25,
+          borderColor: '#dc3545',
+          backgroundColor: 'rgba(220,53,69,0.1)',
+          fill: true, tension: 0.3
+        },
+        {
+          label: 'PM10 (µg/m³)',
+          data: storico.pm10,
+          borderColor: '#fd7e14',
+          backgroundColor: 'rgba(253,126,20,0.1)',
+          fill: true, tension: 0.3
+        }
+      ],
+      gas: [
+        {
+          label: 'NO₂ (µg/m³)',
+          data: storico.no2,
+          borderColor: '#6f42c1',
+          backgroundColor: 'rgba(111,66,193,0.1)',
+          fill: true, tension: 0.3
+        },
+        {
+          label: 'O₃ (µg/m³)',
+          data: storico.o3,
+          borderColor: '#20c997',
+          backgroundColor: 'rgba(32,201,151,0.1)',
+          fill: true, tension: 0.3
+        }
+      ]
+    };
+
+    const grafico = new Chart(ctx, {
+      type: 'line',
+      data: { labels: storico.labels, datasets: datasets.aqi },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Pulsanti per cambiare dataset
+    function setGrafico(tipo, btnId) {
+      grafico.data.datasets = datasets[tipo];
+      grafico.update();
+      document.querySelectorAll('.btn-group .btn').forEach(b => {
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-outline-secondary');
+      });
+      document.getElementById(btnId).classList.remove('btn-outline-secondary');
+      document.getElementById(btnId).classList.add('btn-primary');
+    }
+
+    document.getElementById('btnAqi').addEventListener('click', () => setGrafico('aqi', 'btnAqi'));
+    document.getElementById('btnPm').addEventListener('click',  () => setGrafico('pm',  'btnPm'));
+    document.getElementById('btnGas').addEventListener('click', () => setGrafico('gas', 'btnGas'));

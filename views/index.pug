@@ -40,10 +40,10 @@ block content
                 const div = document.createElement("div");
                 div.classList.add("p-2");
                 div.style.cursor = "pointer";
-                div.textContent = city;
+                div.textContent = city.label;
 
                 div.addEventListener("click", () => {
-                window.location.href = `/citta/${city}`;
+                window.location.href = `/citta/${encodeURIComponent(city.id)}`;
                 });
 
                 suggestions.appendChild(div);
