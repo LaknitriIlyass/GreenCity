@@ -5,6 +5,14 @@ const path = require('path');
 const app = express();
 const FILE_PATH = path.join(__dirname, '/json/utenti.json');
 
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
+require("dotenv").config();
+
+app.use(cookieParser());
+
+const SECRET_KEY = process.env.JWT_SECRET || "supersegreto";
+
 // --- Gestione file utenti ---
 let utenti = [];
 
@@ -29,6 +37,28 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// --- Helper: lettura/scrittura utenti ---
+function getUsers() {
+  return JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
+}
+
+function saveUsers(users) {
+  fs.writeFileSync(FILE_PATH, JSON.stringify(users, null, 2));
+}
+
+// --- Middleware JWT (corretto) ---
+function authenticateToken(req, res, next) {
+  const token = req.cookies?.token;
+
+  if (!token) return res.status(401).send("Non autorizzato");
+
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (err) return res.status(403).send("Token non valido");
+    req.user = user;
+    next();
+  });
+}
+
 // --- Helper: livello AQI ---
 function livelloAqi(aqi) {
   if (aqi <= 20) return { testo: 'Buona',    classe: 'success', emoji: '🟢' };
@@ -48,6 +78,10 @@ function getDateRange(days) {
     end:   end.toISOString().split('T')[0]
   };
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// ROUTE
+// ═══════════════════════════════════════════════════════════════════
 
 // --- Home ---
 app.get('/', (req, res) => {
@@ -83,7 +117,6 @@ app.get('/citta/:id', async (req, res) => {
   const id = req.params.id;
 
   try {
-    // 1. Coordinate
     const geoRes = await fetch(
       `http://geodb-free-service.wirefreethought.com/v1/geo/cities/${encodeURIComponent(id)}`
     );
@@ -96,14 +129,10 @@ app.get('/citta/:id', async (req, res) => {
     const lon = city.longitude;
     const { start, end } = getDateRange(7);
 
-    // 2. Tutte le chiamate in parallelo
     const [meteoRes, ariaRes, storiaRes] = await Promise.all([
-
       fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`),
-
       fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}` +
             `&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,carbon_monoxide,dust,uv_index`),
-
       fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}` +
             `&hourly=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone` +
             `&start_date=${start}&end_date=${end}&timezone=auto`)
@@ -115,13 +144,12 @@ app.get('/citta/:id', async (req, res) => {
 
     const aria = ariaData.current || {};
 
-    // 3. Dati storici — 1 punto per giorno (ora 12:00)
-    const ore    = storiaData.hourly?.time              || [];
-    const aqi7   = storiaData.hourly?.european_aqi      || [];
-    const pm25_7 = storiaData.hourly?.pm2_5             || [];
-    const pm10_7 = storiaData.hourly?.pm10              || [];
-    const no2_7  = storiaData.hourly?.nitrogen_dioxide  || [];
-    const o3_7   = storiaData.hourly?.ozone             || [];
+    const ore    = storiaData.hourly?.time             || [];
+    const aqi7   = storiaData.hourly?.european_aqi     || [];
+    const pm25_7 = storiaData.hourly?.pm2_5            || [];
+    const pm10_7 = storiaData.hourly?.pm10             || [];
+    const no2_7  = storiaData.hourly?.nitrogen_dioxide || [];
+    const o3_7   = storiaData.hourly?.ozone            || [];
 
     const indiciMezzogiorno = ore.reduce((acc, t, i) => {
       if (t.endsWith('T12:00')) acc.push(i);
@@ -134,19 +162,18 @@ app.get('/citta/:id', async (req, res) => {
       meteo: meteoData.current_weather,
 
       aria: {
-        aqi:     Math.round(aria.european_aqi     ?? 0),
-        pm25:    +((aria.pm2_5                    ?? 0).toFixed(1)),
-        pm10:    +((aria.pm10                     ?? 0).toFixed(1)),
-        no2:     +((aria.nitrogen_dioxide         ?? 0).toFixed(1)),
-        so2:     +((aria.sulphur_dioxide          ?? 0).toFixed(1)),
-        o3:      +((aria.ozone                    ?? 0).toFixed(1)),
-        co:      +((aria.carbon_monoxide          ?? 0).toFixed(1)),
-        polveri: +((aria.dust                     ?? 0).toFixed(1)),
-        uv:      +((aria.uv_index                 ?? 0).toFixed(1)),
+        aqi:     Math.round(aria.european_aqi    ?? 0),
+        pm25:    +((aria.pm2_5                   ?? 0).toFixed(1)),
+        pm10:    +((aria.pm10                    ?? 0).toFixed(1)),
+        no2:     +((aria.nitrogen_dioxide        ?? 0).toFixed(1)),
+        so2:     +((aria.sulphur_dioxide         ?? 0).toFixed(1)),
+        o3:      +((aria.ozone                   ?? 0).toFixed(1)),
+        co:      +((aria.carbon_monoxide         ?? 0).toFixed(1)),
+        polveri: +((aria.dust                    ?? 0).toFixed(1)),
+        uv:      +((aria.uv_index                ?? 0).toFixed(1)),
         livello: livelloAqi(aria.european_aqi ?? 0)
       },
 
-      // JSON per Chart.js nel browser
       storico: JSON.stringify({
         labels: indiciMezzogiorno.map(i => ore[i].split('T')[0]),
         aqi:    indiciMezzogiorno.map(i => aqi7[i]   ?? null),
@@ -163,6 +190,10 @@ app.get('/citta/:id', async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════════
+
 // --- Login ---
 app.get('/login', (req, res) => {
   res.render('login');
@@ -170,9 +201,22 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-  const utenti = JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
-  const utenteTrovato = utenti.find(u => u.email === email && u.password === password);
-  if (!utenteTrovato) return res.render('login', { errore: 'Email o password non corretti' });
+  const users = getUsers();
+
+  const user = users.find(u => u.email === email && u.password === password);
+  if (!user) return res.render('login', { errore: 'Email o password non corretti' });
+
+  const token = jwt.sign(
+    { email: user.email, nome: user.nome },
+    SECRET_KEY,
+    { expiresIn: '1h' }
+  );
+
+  res.cookie('token', token, {
+    httpOnly: true,
+    sameSite: 'lax'
+  });
+
   res.redirect('/');
 });
 
@@ -183,39 +227,51 @@ app.get('/registrazione', (req, res) => {
 
 app.post('/registrazione', (req, res) => {
   const { nome, email, password } = req.body;
-  const utenti = JSON.parse(fs.readFileSync(FILE_PATH, 'utf8'));
-  const utenteEsistente = utenti.find(u => u.email === email);
-  if (utenteEsistente) return res.render('registrazione', { errore: 'Email già registrata' });
-  utenti.push({ id: Date.now(), nome, email, password });
-  fs.writeFileSync(FILE_PATH, JSON.stringify(utenti, null, 2));
+  const users = getUsers();
+
+  const exists = users.find(u => u.email === email);
+  if (exists) return res.render('registrazione', { errore: "Email già registrata. Usa un'altra email o vai al login." });
+
+  const newUser = { id: Date.now(), nome, email, password };
+  users.push(newUser);
+  saveUsers(users);
+
   res.redirect('/login');
+});
+
+// --- Logout ---
+app.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ message: 'Logout effettuato' });
+});
+
+// --- Preferiti (protetto) ---
+app.get('/preferiti', authenticateToken, (req, res) => {
+  res.send('Pagina protetta');
 });
 
 // ═══════════════════════════════════════════════════════════════════
 // CLASSIFICA
 // ═══════════════════════════════════════════════════════════════════
 
-// Città mondiali con coordinate fisse (no API call necessaria)
 const CITTA_MONDIALI = [
-  { nome: 'Reykjavik',  paese: 'Iceland',     lat: 64.1355,  lon: -21.8954 },
-  { nome: 'Helsinki',   paese: 'Finland',     lat: 60.1699,  lon: 24.9384  },
-  { nome: 'Oslo',       paese: 'Norway',      lat: 59.9139,  lon: 10.7522  },
-  { nome: 'Stockholm',  paese: 'Sweden',      lat: 59.3293,  lon: 18.0686  },
-  { nome: 'Tallinn',    paese: 'Estonia',     lat: 59.4370,  lon: 24.7536  },
-  { nome: 'Vilnius',    paese: 'Lithuania',   lat: 54.6872,  lon: 25.2797  },
-  { nome: 'Dublin',     paese: 'Ireland',     lat: 53.3498,  lon: -6.2603  },
-  { nome: 'Riga',       paese: 'Latvia',      lat: 56.9460,  lon: 24.1059  },
-  { nome: 'Copenhagen', paese: 'Denmark',     lat: 55.6761,  lon: 12.5683  },
-  { nome: 'Ljubljana',  paese: 'Slovenia',    lat: 46.0569,  lon: 14.5058  },
-  { nome: 'Brussels',   paese: 'Belgium',     lat: 50.8503,  lon: 4.3517   },
-  { nome: 'Bern',       paese: 'Switzerland', lat: 46.9480,  lon: 7.4474   },
-  { nome: 'Wellington', paese: 'New Zealand', lat: -41.2865, lon: 174.7762 },
-  { nome: 'Vancouver',  paese: 'Canada',      lat: 49.2827,  lon: -123.1207},
-  { nome: 'Canberra',   paese: 'Australia',   lat: -35.2809, lon: 149.1300 },
+  { nome: 'Reykjavik',  paese: 'Iceland',     lat: 64.1355,  lon: -21.8954  },
+  { nome: 'Helsinki',   paese: 'Finland',     lat: 60.1699,  lon: 24.9384   },
+  { nome: 'Oslo',       paese: 'Norway',      lat: 59.9139,  lon: 10.7522   },
+  { nome: 'Stockholm',  paese: 'Sweden',      lat: 59.3293,  lon: 18.0686   },
+  { nome: 'Tallinn',    paese: 'Estonia',     lat: 59.4370,  lon: 24.7536   },
+  { nome: 'Vilnius',    paese: 'Lithuania',   lat: 54.6872,  lon: 25.2797   },
+  { nome: 'Dublin',     paese: 'Ireland',     lat: 53.3498,  lon: -6.2603   },
+  { nome: 'Riga',       paese: 'Latvia',      lat: 56.9460,  lon: 24.1059   },
+  { nome: 'Copenhagen', paese: 'Denmark',     lat: 55.6761,  lon: 12.5683   },
+  { nome: 'Ljubljana',  paese: 'Slovenia',    lat: 46.0569,  lon: 14.5058   },
+  { nome: 'Brussels',   paese: 'Belgium',     lat: 50.8503,  lon: 4.3517    },
+  { nome: 'Bern',       paese: 'Switzerland', lat: 46.9480,  lon: 7.4474    },
+  { nome: 'Wellington', paese: 'New Zealand', lat: -41.2865, lon: 174.7762  },
+  { nome: 'Vancouver',  paese: 'Canada',      lat: 49.2827,  lon: -123.1207 },
+  { nome: 'Canberra',   paese: 'Australia',   lat: -35.2809, lon: 149.1300  },
 ];
 
-// Recupera AQI per una lista di città {nome, paese, lat, lon, geoId?}
-// Fa tutte le chiamate in parallelo lato server, ordina e restituisce top 10
 async function calcolaTop10(citta) {
   const risultati = await Promise.all(citta.map(async (c) => {
     try {
@@ -244,7 +300,6 @@ async function calcolaTop10(citta) {
     .slice(0, 10);
 }
 
-// Aggiunge il livello testuale a ogni elemento della classifica
 function aggiungiLivello(classifica) {
   return classifica.map(c => {
     let livello;
@@ -257,7 +312,6 @@ function aggiungiLivello(classifica) {
   });
 }
 
-// GET /classifica  →  top 10 mondiale calcolata lato server
 app.get('/classifica', async (req, res) => {
   try {
     const top10 = await calcolaTop10(CITTA_MONDIALI);
@@ -272,19 +326,16 @@ app.get('/classifica', async (req, res) => {
   }
 });
 
-// POST /classifica  →  riceve il codice paese dal form e fa redirect
 app.post('/classifica', (req, res) => {
   const codice = (req.body.codice || '').trim().toUpperCase();
   if (!codice) return res.redirect('/classifica');
   res.redirect(`/classifica/${codice}`);
 });
 
-// GET /classifica/:codice  →  top 10 della nazione scelta
 app.get('/classifica/:codice', async (req, res) => {
   const codice = req.params.codice.toUpperCase();
 
   try {
-    // Usa countryIds (codice ISO-2) per filtrare correttamente per nazione
     const geoRes = await fetch(
       `http://geodb-free-service.wirefreethought.com/v1/geo/cities` +
       `?countryIds=${codice}&minPopulation=100000&limit=10&types=CITY&sort=-population`
@@ -301,7 +352,6 @@ app.get('/classifica/:codice', async (req, res) => {
       });
     }
 
-    // Mappa nel formato che si aspetta calcolaTop10
     const citta = geoData.data.map(c => ({
       nome:  c.city,
       paese: c.country,
