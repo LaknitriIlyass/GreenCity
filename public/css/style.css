@@ -658,4 +658,174 @@ a:hover { color: #6ee7b7; }
 
 .gc-footer-creators a:hover {
   color: #34d399;
+}/* ═══════════════════════════════════════
+   BOTTONE PREFERITO (stella)
+═══════════════════════════════════════ */
+
+.gc-btn-fav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #94a3b8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.gc-btn-fav:hover {
+  border-color: #fbbf24;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.gc-btn-fav.fav-active {
+  border-color: #fbbf24;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.gc-btn-fav.fav-guest:hover {
+  border-color: #34d399;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.08);
+}
+
+/* ═══════════════════════════════════════
+   PAGINA PREFERITI — AUTH WALL
+═══════════════════════════════════════ */
+
+.gc-auth-wall {
+  text-align: center;
+  padding: 5rem 2rem;
+}
+
+.gc-auth-wall-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.gc-auth-wall-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #f0fdf4;
+  margin: 0 0 0.5rem;
+}
+
+.gc-auth-wall-sub {
+  color: #64748b;
+  font-size: 1rem;
+  margin: 0 0 2rem;
+}
+
+.gc-auth-wall-btns {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.gc-auth-wall-btns .gc-btn,
+.gc-auth-wall-btns .gc-btn-outline {
+  width: auto;
+  padding: 11px 28px;
+}
+
+/* ═══════════════════════════════════════
+   CARD PREFERITI
+═══════════════════════════════════════ */
+
+.gc-fav-card {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  transition: border-color 0.2s, transform 0.2s;
+  height: 100%;
+}
+
+.gc-fav-card:hover {
+  border-color: rgba(52, 211, 153, 0.2);
+  transform: translateY(-2px);
+}
+
+.gc-fav-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.gc-fav-nome {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f0fdf4;
+  margin: 0 0 0.1rem;
+}
+
+.gc-fav-paese {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.gc-fav-aqi {
+  font-family: 'Syne', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.gc-fav-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.gc-fav-row {
+  display: flex;
+  gap: 1.2rem;
+}
+
+.gc-fav-val {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+}
+
+.gc-fav-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.gc-fav-actions .gc-btn {
+  flex: 1;
+  padding: 8px 14px;
+  font-size: 0.88rem;
+}
+
+.gc-fav-actions .gc-btn-outline {
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  width: auto;
+  flex-shrink: 0;
+  color: #f87171 !important;
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+.gc-fav-actions .gc-btn-outline:hover {
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
 }

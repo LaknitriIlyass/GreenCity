@@ -24,7 +24,8 @@ try {
     console.log('File utenti.json non trovato, creazione...');
     fs.writeFileSync(FILE_PATH, JSON.stringify([]));
   }
-} catch (error) {
+} 
+catch (error) {
   console.error('Errore file:', error);
   utenti = [];
 }
@@ -85,7 +86,11 @@ function getDateRange(days) {
 
 // --- Home ---
 app.get('/', (req, res) => {
-  res.render('index');
+  const token = req.cookies?.token;
+  if (!token) return res.render('index', { utente: null });
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    res.render('index', { utente: err ? null : user });
+  });
 });
 
 // --- API città (autocomplete) ---
@@ -115,6 +120,10 @@ app.get('/api/citta', async (req, res) => {
 // --- Pagina città ---
 app.get('/citta/:id', async (req, res) => {
   const id = req.params.id;
+
+  let utente = null;
+  const tok = req.cookies?.token;
+  if (tok) { try { utente = jwt.verify(tok, SECRET_KEY); } catch(e){} }
 
   try {
     const geoRes = await fetch(
@@ -158,6 +167,8 @@ app.get('/citta/:id', async (req, res) => {
 
     res.render('city', {
       nome:  city.city,
+      geoId: id,
+      utente,
       paese: city.country,
       meteo: meteoData.current_weather,
 
@@ -196,7 +207,7 @@ app.get('/citta/:id', async (req, res) => {
 
 // --- Login ---
 app.get('/login', (req, res) => {
-  res.render('login');
+  res.render('login', { utente: null });
 });
 
 app.post('/login', (req, res) => {
@@ -222,7 +233,7 @@ app.post('/login', (req, res) => {
 
 // --- Registrazione ---
 app.get('/registrazione', (req, res) => {
-  res.render('registrazione');
+  res.render('registrazione', { utente: null });
 });
 
 app.post('/registrazione', (req, res) => {
@@ -242,12 +253,121 @@ app.post('/registrazione', (req, res) => {
 // --- Logout ---
 app.post('/logout', (req, res) => {
   res.clearCookie('token');
-  res.json({ message: 'Logout effettuato' });
+  res.redirect('/');
 });
 
-// --- Preferiti (protetto) ---
-app.get('/preferiti', authenticateToken, (req, res) => {
-  res.send('Pagina protetta');
+// ═══════════════════════════════════════════════════════════════════
+// PREFERITI
+// ═══════════════════════════════════════════════════════════════════
+
+function getPreferiti(email) {
+  const users = getUsers();
+  const user = users.find(u => u.email === email);
+  return user?.preferiti || [];
+}
+
+function savePreferiti(email, preferiti) {
+  const users = getUsers();
+  const idx = users.findIndex(u => u.email === email);
+  if (idx === -1) return;
+  users[idx].preferiti = preferiti;
+  saveUsers(users);
+}
+
+// Pagina preferiti
+app.get('/preferiti', (req, res) => {
+  const token = req.cookies?.token;
+
+  if (!token) {
+    return res.render('preferiti', { utente: null, preferiti: [] });
+  }
+
+  jwt.verify(token, SECRET_KEY, async (err, user) => {
+    if (err) return res.render('preferiti', { utente: null, preferiti: [] });
+
+    const savedFavs = getPreferiti(user.email);
+
+    if (!savedFavs.length) {
+      return res.render('preferiti', { utente: user, preferiti: [] });
+    }
+
+    const enriched = await Promise.all(savedFavs.map(async (fav) => {
+      try {
+        let lat = fav.lat, lon = fav.lon;
+
+        if (!lat || !lon) {
+          const geoRes = await fetch(
+            `http://geodb-free-service.wirefreethought.com/v1/geo/cities/${encodeURIComponent(fav.id)}`
+          );
+          const geoData = await geoRes.json();
+          lat = geoData.data?.latitude;
+          lon = geoData.data?.longitude;
+        }
+
+        if (!lat || !lon) throw new Error('Coordinate non trovate');
+
+        const ariaRes = await fetch(
+          `https://air-quality-api.open-meteo.com/v1/air-quality` +
+          `?latitude=${lat}&longitude=${lon}&current=european_aqi,pm2_5,pm10`
+        );
+        const ariaData = await ariaRes.json();
+        const curr = ariaData.current || {};
+
+        const aqi = Math.round(curr.european_aqi ?? 0);
+        return {
+          id:    fav.id,
+          nome:  fav.nome,
+          paese: fav.paese,
+          aqi,
+          pm25:  +((curr.pm2_5 ?? 0).toFixed(1)),
+          pm10:  +((curr.pm10  ?? 0).toFixed(1)),
+          livello: livelloAqi(aqi)
+        };
+      } catch (e) {
+        return {
+          id:    fav.id,
+          nome:  fav.nome,
+          paese: fav.paese,
+          aqi:   '—',
+          pm25:  '—',
+          pm10:  '—',
+          livello: { testo: 'N/D', classe: 'muted', emoji: '⚪' }
+        };
+      }
+    }));
+
+    res.render('preferiti', { utente: user, preferiti: enriched });
+  });
+});
+
+// Check se una città è tra i preferiti (risponde sempre JSON)
+app.get('/preferiti/check/:id', (req, res) => {
+  const token = req.cookies?.token;
+  if (!token) return res.json({ loggato: false, preferito: false });
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (err) return res.json({ loggato: false, preferito: false });
+    const favs = getPreferiti(user.email);
+    const preferito = favs.some(f => String(f.id) === String(req.params.id));
+    res.json({ loggato: true, preferito });
+  });
+});
+
+// Toggle preferito (aggiungi / rimuovi)
+app.post('/preferiti/toggle', authenticateToken, (req, res) => {
+  const { id, nome, paese, rimuovi } = req.body;
+  let favs = getPreferiti(req.user.email);
+
+  const exists = favs.some(f => String(f.id) === String(id));
+
+  if (exists || rimuovi) {
+    favs = favs.filter(f => String(f.id) !== String(id));
+    savePreferiti(req.user.email, favs);
+    return res.json({ preferito: false });
+  } else {
+    favs.push({ id, nome, paese });
+    savePreferiti(req.user.email, favs);
+    return res.json({ preferito: true });
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════
@@ -315,10 +435,14 @@ function aggiungiLivello(classifica) {
 app.get('/classifica', async (req, res) => {
   try {
     const top10 = await calcolaTop10(CITTA_MONDIALI);
+    const tok = req.cookies?.token;
+    let utente = null;
+    if (tok) { try { utente = jwt.verify(tok, SECRET_KEY); } catch(e){} }
     res.render('classifica', {
       classifica: aggiungiLivello(top10),
       titolo:     'Top 10 mondiale',
-      codice:     null
+      codice:     null,
+      utente
     });
   } catch (err) {
     console.error(err);

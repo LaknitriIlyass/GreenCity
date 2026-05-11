@@ -1,0 +1,68 @@
+extends layout
+
+block content
+
+  div.gc-page
+
+    div.gc-page-header
+      h1.gc-page-title ★ I tuoi preferiti
+      p.gc-page-subtitle Le città che stai monitorando
+
+    if !utente
+      //- Utente non loggato
+      div.gc-auth-wall
+        div.gc-auth-wall-icon ☆
+        h2.gc-auth-wall-title Accedi per vedere i tuoi preferiti
+        p.gc-auth-wall-sub Salva le città che vuoi monitorare e ritrovale sempre qui
+        div.gc-auth-wall-btns
+          a.gc-btn(href='/login') Accedi
+          a.gc-btn-outline(href='/registrazione') Registrati
+
+    else if preferiti && preferiti.length
+
+      div.row.g-3
+        each c in preferiti
+          div.col-12.col-md-6.col-lg-4
+            div.gc-fav-card
+              div.gc-fav-card-top
+                div
+                  h3.gc-fav-nome #{c.nome}
+                  p.gc-fav-paese #{c.paese}
+                div.gc-fav-aqi(class=`aqi-${c.livello.classe}`) #{c.aqi}
+
+              div.gc-fav-badges
+                span.gc-badge(class=`gc-badge-${c.livello.classe}`) #{c.livello.emoji}&nbsp;#{c.livello.testo}
+                span.gc-muted.small &nbsp;AQI #{c.aqi}
+
+              div.gc-fav-row
+                div
+                  span.gc-label PM2.5&nbsp;
+                  span.gc-fav-val #{c.pm25} µg/m³
+                div
+                  span.gc-label PM10&nbsp;
+                  span.gc-fav-val #{c.pm10} µg/m³
+
+              div.gc-fav-actions
+                a.gc-btn(href=`/citta/${c.id}`) Apri →
+                button.gc-btn-outline.btn-sm.btn-rimuovi(data-id=c.id) ✕ Rimuovi
+
+    else
+      div.gc-auth-wall
+        div.gc-auth-wall-icon 📍
+        h2.gc-auth-wall-title Nessun preferito ancora
+        p.gc-auth-wall-sub Cerca una città e clicca la stella ☆ per aggiungerla qui
+        a.gc-btn(href='/') Cerca una città
+
+block scripts
+  script.
+    document.querySelectorAll('.btn-rimuovi').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const r = await fetch('/preferiti/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, rimuovi: true })
+        });
+        if (r.ok) btn.closest('.col-12').remove();
+      });
+    });

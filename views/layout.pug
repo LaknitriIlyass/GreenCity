@@ -23,8 +23,18 @@ html
         div.d-flex.align-items-center.gap-4
           a.gc-brand(href="/") Green City
           a.gc-navlink(href="/classifica") Classifica
-        a.gc-user(href="/login")
-          i.fas.fa-user
+          a.gc-navlink(href="/preferiti")
+            | Preferiti
+        div.d-flex.align-items-center.gap-3
+          if utente
+            span.gc-navlink(style="color:#34d399")
+              i.fas.fa-user(style="margin-right:5px")
+              | #{utente.nome}
+            form(action="/logout" method="POST" style="margin:0")
+              button.gc-navlink(type="submit" style="background:none;border:none;cursor:pointer;padding:0") Esci
+          else
+            a.gc-user(href="/login")
+              i.fas.fa-user
 
     // CONTENUTO PAGINA
     main.flex-fill

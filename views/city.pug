@@ -4,190 +4,220 @@ block content
 
   div.gc-page
 
+    //- Header
     div.gc-page-header
-      a.gc-back(href="/") ← Torna alla home
-      h1.gc-page-title #{nome}
-      p.gc-page-subtitle #{paese}
+      a.gc-back(href='/') ← Torna alla home
+      div(style='display:flex; align-items:center; gap:1rem; flex-wrap:wrap')
+        div(style='flex:1')
+          h1.gc-page-title #{nome}
+          p.gc-page-subtitle #{paese}
+        //- Bottone stella preferiti
+        button#btn-preferito.gc-btn-fav(
+          data-id=geoId
+          data-nome=nome
+          data-paese=paese
+          title='Aggiungi ai preferiti'
+        )
+          span#fav-icon ☆
+          span#fav-label &nbsp;Preferito
 
-    //- AQI principale
+    //- Card AQI principale
     div.gc-card.mb-4
-      div.row.align-items-center
-        div.col-md-4.text-center.mb-3.mb-md-0
-          p.gc-label.text-uppercase.mb-1 Indice AQI europeo
+      div.row.g-4.align-items-center
+        div.col-md-4.text-center
+          p.gc-label Indice AQI Europeo
           div.gc-aqi-big(class=`aqi-${aria.livello.classe}`) #{aria.aqi}
-          span.gc-badge(class=`gc-badge-${aria.livello.classe}`) #{aria.livello.emoji} #{aria.livello.testo}
+          span.gc-badge(class=`gc-badge-${aria.livello.classe}`) #{aria.livello.emoji}&nbsp;#{aria.livello.testo}
+
         div.col-md-8
-          p.gc-label.mb-1 Posizione sulla scala
-          div.gc-aqi-bar.mb-3
+          p.gc-label Posizione sulla scala
+          div.gc-aqi-bar.mb-2
             div.gc-aqi-bar-track
-            div.gc-aqi-marker(style=`left: calc(${Math.min(aria.aqi, 100)}% - 10px)`) ▼
-          div.d-flex.justify-content-between.gc-muted.small
+            div.gc-aqi-marker(style=`left:${Math.min(aria.aqi, 100)}%`) ▼
+          div(style='display:flex; justify-content:space-between; font-size:0.75rem; color:#64748b')
             span 0
             span 20
             span 40
             span 60
             span 80
             span 100+
-          p.gc-muted.small.mt-2.mb-0
+          p.gc-muted.small.mt-2
             | Dati aggiornati ogni ora · Fonte:&nbsp;
-            a(href="https://open-meteo.com" target="_blank") Open-Meteo Air Quality
+            a(href='https://open-meteo.com' target='_blank') Open-Meteo Air Quality
+
+    //- Meteo
+    if meteo
+      div.gc-card.mb-4
+        h5.gc-section-title ☁️ Meteo attuale
+        div.row.g-3
+          div.col-6.col-md-3
+            p.gc-label Temperatura
+            p.gc-stat #{meteo.temperature}&nbsp;°C
+          div.col-6.col-md-3
+            p.gc-label Vento
+            p.gc-stat #{meteo.windspeed}&nbsp;km/h
+          div.col-6.col-md-3
+            p.gc-label Direzione
+            p.gc-stat #{meteo.winddirection}°
+          div.col-6.col-md-3
+            p.gc-label Codice meteo
+            p.gc-stat #{meteo.weathercode}
 
     //- Inquinanti
     h5.gc-section-title Inquinanti attuali
     div.row.g-3.mb-4
+      div.col-6.col-md-3
+        div.gc-card
+          p.gc-label PM2.5
+          p.gc-stat #{aria.pm25}&nbsp;<small style='font-size:0.65em'>µg/m³</small>
+          p.gc-muted.small Particelle fini · limite OMS: 15
+      div.col-6.col-md-3
+        div.gc-card
+          p.gc-label PM10
+          p.gc-stat #{aria.pm10}&nbsp;<small style='font-size:0.65em'>µg/m³</small>
+          p.gc-muted.small Polveri grossolane · limite OMS: 45
+      div.col-6.col-md-3
+        div.gc-card
+          p.gc-label NO₂
+          p.gc-stat #{aria.no2}&nbsp;<small style='font-size:0.65em'>µg/m³</small>
+          p.gc-muted.small Traffico e combustioni
+      div.col-6.col-md-3
+        div.gc-card
+          p.gc-label O₃ Ozono
+          p.gc-stat #{aria.o3}&nbsp;<small style='font-size:0.65em'>µg/m³</small>
+          p.gc-muted.small Si forma con calore e luce
+      div.col-6.col-md-3
+        div.gc-card
+          p.gc-label SO₂
+          p.gc-stat #{aria.so2}&nbsp;<small style='font-size:0.65em'>µg/m³</small>
+          p.gc-muted.small Industrie e centrali
+      div.col-6.col-md-3
+        div.gc-card
+          p.gc-label CO
+          p.gc-stat #{aria.co}&nbsp;<small style='font-size:0.65em'>µg/m³</small>
+          p.gc-muted.small Combustioni incomplete
+      div.col-6.col-md-3
+        div.gc-card
+          p.gc-label Polveri
+          p.gc-stat #{aria.polveri}&nbsp;<small style='font-size:0.65em'>µg/m³</small>
+          p.gc-muted.small Polveri minerali e sabbia
+      div.col-6.col-md-3
+        div.gc-card
+          p.gc-label Indice UV
+          p.gc-stat #{aria.uv}
+          p.gc-muted.small Radiazione ultravioletta
 
-      div.col-6.col-lg-3
-        div.gc-card.h-100
-          p.gc-label.mb-1 PM2.5
-          h4.gc-stat #{aria.pm25} #[small.gc-muted µg/m³]
-          p.gc-muted.small.mb-0 Particelle fini · limite OMS: 15
-
-      div.col-6.col-lg-3
-        div.gc-card.h-100
-          p.gc-label.mb-1 PM10
-          h4.gc-stat #{aria.pm10} #[small.gc-muted µg/m³]
-          p.gc-muted.small.mb-0 Polveri grossolane · limite OMS: 45
-
-      div.col-6.col-lg-3
-        div.gc-card.h-100
-          p.gc-label.mb-1 NO₂
-          h4.gc-stat #{aria.no2} #[small.gc-muted µg/m³]
-          p.gc-muted.small.mb-0 Traffico e combustioni
-
-      div.col-6.col-lg-3
-        div.gc-card.h-100
-          p.gc-label.mb-1 O₃ Ozono
-          h4.gc-stat #{aria.o3} #[small.gc-muted µg/m³]
-          p.gc-muted.small.mb-0 Si forma con calore e luce
-
-      div.col-6.col-lg-3
-        div.gc-card.h-100
-          p.gc-label.mb-1 SO₂
-          h4.gc-stat #{aria.so2} #[small.gc-muted µg/m³]
-          p.gc-muted.small.mb-0 Industrie e centrali
-
-      div.col-6.col-lg-3
-        div.gc-card.h-100
-          p.gc-label.mb-1 CO
-          h4.gc-stat #{aria.co} #[small.gc-muted µg/m³]
-          p.gc-muted.small.mb-0 Combustioni incomplete
-
-      div.col-6.col-lg-3
-        div.gc-card.h-100
-          p.gc-label.mb-1 Polveri
-          h4.gc-stat #{aria.polveri} #[small.gc-muted µg/m³]
-          p.gc-muted.small.mb-0 Polveri minerali e sabbia
-
-      div.col-6.col-lg-3
-        div.gc-card.h-100
-          p.gc-label.mb-1 Indice UV
-          h4.gc-stat #{aria.uv}
-          p.gc-muted.small.mb-0 Radiazione ultravioletta
-
-    //- Grafici 7 giorni
+    //- Storico 7 giorni
     h5.gc-section-title Andamento ultimi 7 giorni
-
-    div.gc-btn-group.mb-3
-      button.gc-tab.active#btnAqi(type="button") AQI
-      button.gc-tab#btnPm(type="button") PM2.5 / PM10
-      button.gc-tab#btnGas(type="button") NO₂ / O₃
-
-    div.gc-card.mb-4
-      canvas#grafico(height="100")
-
-    //- Meteo
-    h5.gc-section-title Condizioni meteo
-    div.row.g-3
-
-      div.col-6.col-md-3
-        div.gc-card.text-center
-          p.gc-label.mb-1  Temperatura
-          h4.gc-stat #{meteo.temperature}°C
-
-      div.col-6.col-md-3
-        div.gc-card.text-center
-          p.gc-label.mb-1  Vento
-          h4.gc-stat #{meteo.windspeed} km/h
-
-      div.col-6.col-md-3
-        div.gc-card.text-center
-          p.gc-label.mb-1  Direzione
-          h4.gc-stat #{meteo.winddirection}°
+    div.gc-card
+      div.gc-btn-group.mb-3
+        button.gc-tab.active(onclick="switchChart('aqi',this)") AQI
+        button.gc-tab(onclick="switchChart('pm25pm10',this)") PM2.5 / PM10
+        button.gc-tab(onclick="switchChart('no2o3',this)") NO₂ / O₃
+      canvas#chart(height='100')
 
 block scripts
-  script(src="https://cdn.jsdelivr.net/npm/chart.js")
+  script(src='https://cdn.jsdelivr.net/npm/chart.js')
   script.
-    const storico = !{storico};
-    const ctx = document.getElementById('grafico').getContext('2d');
-
-    Chart.defaults.color = '#94a3b8';
-    Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+    const raw = !{storico};
+    let currentChart = null;
 
     const datasets = {
-      aqi: [{
-        label: 'AQI europeo',
-        data: storico.aqi,
-        borderColor: '#34d399',
-        backgroundColor: 'rgba(52,211,153,0.1)',
-        fill: true, tension: 0.3
-      }],
-      pm: [
-        {
-          label: 'PM2.5 (µg/m³)',
-          data: storico.pm25,
-          borderColor: '#f87171',
-          backgroundColor: 'rgba(248,113,113,0.1)',
-          fill: true, tension: 0.3
-        },
-        {
-          label: 'PM10 (µg/m³)',
-          data: storico.pm10,
-          borderColor: '#fb923c',
-          backgroundColor: 'rgba(251,146,60,0.1)',
-          fill: true, tension: 0.3
-        }
-      ],
-      gas: [
-        {
-          label: 'NO₂ (µg/m³)',
-          data: storico.no2,
-          borderColor: '#a78bfa',
-          backgroundColor: 'rgba(167,139,250,0.1)',
-          fill: true, tension: 0.3
-        },
-        {
-          label: 'O₃ (µg/m³)',
-          data: storico.o3,
-          borderColor: '#38bdf8',
-          backgroundColor: 'rgba(56,189,248,0.1)',
-          fill: true, tension: 0.3
-        }
-      ]
+      aqi: {
+        labels: raw.labels,
+        datasets: [{
+          label: 'AQI',
+          data: raw.aqi,
+          borderColor: '#34d399',
+          backgroundColor: 'rgba(52,211,153,0.1)',
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4
+        }]
+      },
+      pm25pm10: {
+        labels: raw.labels,
+        datasets: [
+          { label:'PM2.5', data: raw.pm25, borderColor:'#38bdf8', backgroundColor:'rgba(56,189,248,0.1)', tension:0.4, fill:false, pointRadius:4 },
+          { label:'PM10',  data: raw.pm10, borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,0.1)',  tension:0.4, fill:false, pointRadius:4 }
+        ]
+      },
+      no2o3: {
+        labels: raw.labels,
+        datasets: [
+          { label:'NO₂', data: raw.no2, borderColor:'#fb923c', backgroundColor:'rgba(251,146,60,0.1)', tension:0.4, fill:false, pointRadius:4 },
+          { label:'O₃',  data: raw.o3,  borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,0.1)', tension:0.4, fill:false, pointRadius:4 }
+        ]
+      }
     };
 
-    const grafico = new Chart(ctx, {
-      type: 'line',
-      data: { labels: storico.labels, datasets: datasets.aqi },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'top' },
-          tooltip: { mode: 'index', intersect: false }
-        },
-        scales: {
-          y: { beginAtZero: true },
-          x: { grid: { display: false } }
-        }
+    const opts = {
+      responsive: true,
+      plugins: { legend: { labels: { color:'#94a3b8' } } },
+      scales: {
+        x: { ticks:{ color:'#64748b' }, grid:{ color:'rgba(255,255,255,0.05)' } },
+        y: { ticks:{ color:'#64748b' }, grid:{ color:'rgba(255,255,255,0.05)' }, beginAtZero:true }
       }
-    });
+    };
 
-    function setGrafico(tipo, btnId) {
-      grafico.data.datasets = datasets[tipo];
-      grafico.update();
+    function switchChart(key, btn) {
       document.querySelectorAll('.gc-tab').forEach(b => b.classList.remove('active'));
-      document.getElementById(btnId).classList.add('active');
+      btn.classList.add('active');
+      if (currentChart) currentChart.destroy();
+      const ctx = document.getElementById('chart').getContext('2d');
+      currentChart = new Chart(ctx, { type:'line', data: datasets[key], options: opts });
     }
 
-    document.getElementById('btnAqi').addEventListener('click', () => setGrafico('aqi', 'btnAqi'));
-    document.getElementById('btnPm').addEventListener('click',  () => setGrafico('pm',  'btnPm'));
-    document.getElementById('btnGas').addEventListener('click', () => setGrafico('gas', 'btnGas'));
+    switchChart('aqi', document.querySelector('.gc-tab.active'));
+
+    //- ── PREFERITI ──────────────────────────────────────
+    const btn   = document.getElementById('btn-preferito');
+    const icon  = document.getElementById('fav-icon');
+    const label = document.getElementById('fav-label');
+    const cityId   = btn.dataset.id;
+    const cityNome  = btn.dataset.nome;
+    const cityPaese = btn.dataset.paese;
+
+    async function checkFav() {
+      try {
+        const r = await fetch('/preferiti/check/' + encodeURIComponent(cityId));
+        const d = await r.json();
+        if (!d.loggato) {
+          btn.classList.add('fav-guest');
+          icon.textContent  = '☆';
+          label.textContent = '\u00a0Accedi per salvare';
+          return;
+        }
+        setFavUI(d.preferito);
+      } catch(e) {}
+    }
+
+    function setFavUI(active) {
+      btn.classList.remove('fav-guest');
+      if (active) {
+        icon.textContent  = '★';
+        label.textContent = '\u00a0Nei preferiti';
+        btn.classList.add('fav-active');
+      } else {
+        icon.textContent  = '☆';
+        label.textContent = '\u00a0Preferito';
+        btn.classList.remove('fav-active');
+      }
+    }
+
+    btn.addEventListener('click', async () => {
+      if (btn.classList.contains('fav-guest')) {
+        window.location.href = '/login';
+        return;
+      }
+      const r = await fetch('/preferiti/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: cityId, nome: cityNome, paese: cityPaese })
+      });
+      if (r.status === 401) { window.location.href = '/login'; return; }
+      const d = await r.json();
+      setFavUI(d.preferito);
+    });
+
+    checkFav();
