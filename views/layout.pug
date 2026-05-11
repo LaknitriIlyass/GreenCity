@@ -12,25 +12,37 @@ html
     // Font Awesome
     link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css")
 
-    // CSS tuo
+    // CSS
     link(rel="stylesheet", href="/css/style.css")
 
-  body.d-flex.flex-column.min-vh-100.bg-light
+  body.d-flex.flex-column.min-vh-100
 
     // NAVBAR
-    nav.navbar.navbar-light.bg-white.shadow-sm
-      div.container-fluid
-        a.navbar-brand(href="/") Green City
-        a(href="/login")
-          i.fas.fa-user.fs-4
+    nav.gc-navbar
+      div.gc-navbar-inner
+        div.d-flex.align-items-center.gap-4
+          a.gc-brand(href="/") Green City
+          a.gc-navlink(href="/classifica") Classifica
+        a.gc-user(href="/login")
+          i.fas.fa-user
 
     // CONTENUTO PAGINA
-    main.flex-fill.d-flex.align-items-center.justify-content-center
+    main.flex-fill
       block content
 
     // FOOTER
-    footer.text-center.p-3.bg-white.mt-auto.shadow-sm
-      p.mb-0 © 2026 Green City
+    footer.gc-footer
+      p.mb-2 © 2026 Green City
+      div.gc-footer-creators
+        span
+          i.fas.fa-user.me-1
+          | Sassi Alberto &nbsp;·&nbsp;
+          a(href="mailto:salberto.sassi@itis.pr.it") salberto.sassi@itis.pr.it
+        span.gc-footer-sep
+        span
+          i.fas.fa-user.me-1
+          | Laknitri Ilyass &nbsp;·&nbsp;
+          a(href="mailto:silyass.laknitri@itis.pr.it") silyass.laknitri@itis.pr.it
 
     // Bootstrap JS
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js")

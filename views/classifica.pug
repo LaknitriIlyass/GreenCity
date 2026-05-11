@@ -1,0 +1,93 @@
+extends layout
+
+block content
+
+  div.gc-page
+
+    div.gc-page-header
+      h1.gc-page-title Classifica aria pulita
+      p.gc-page-subtitle Città con l'aria più pulita al mondo o filtrate per nazione
+
+    //- Form ricerca per nazione
+    div.gc-card.mb-4
+      form(action="/classifica" method="POST")
+        div.row.g-3.align-items-end
+          div.col-md-5
+            label.gc-label Filtra per nazione
+            input.gc-input(
+              type="text"
+              name="codice"
+              placeholder="Codice ISO: IT, FR, DE, ES, US, JP..."
+              value=codice || ''
+              maxlength="2"
+              style="text-transform:uppercase"
+            )
+            small.gc-hint IT = Italia · FR = Francia · DE = Germania · ES = Spagna
+          div.col-md-3
+            div.d-grid
+              button.gc-btn(type="submit") Cerca
+          div.col-md-3
+            div.d-grid
+              a.gc-btn-outline(href="/classifica") Mondiale
+
+    h5.gc-section-title #{titolo}
+
+    if classifica && classifica.length
+
+      div.gc-card.p-0
+        table.gc-table
+          thead
+            tr
+              th(style="width:50px") #
+              th Città
+              th Nazione
+              th AQI
+              th Qualità
+              th PM2.5
+              th PM10
+              th
+
+          tbody
+            each citta, i in classifica
+              tr
+                td.text-center.fs-5
+                  if i === 0
+                    | 🥇
+                  else if i === 1
+                    | 🥈
+                  else if i === 2
+                    | 🥉
+                  else
+                    span.gc-rank #{i + 1}
+                td.fw-semibold #{citta.nome}
+                td.gc-muted #{citta.paese}
+                td
+                  span.gc-aqi-value(class=`aqi-${citta.livello.classe}`) #{citta.aqi}
+                td
+                  span.gc-badge(class=`gc-badge-${citta.livello.classe}`) #{citta.livello.testo}
+                td
+                  | #{citta.pm25}
+                  small.gc-muted  µg/m³
+                td
+                  | #{citta.pm10}
+                  small.gc-muted  µg/m³
+                td
+                  if citta.geoId
+                    a.gc-btn-outline.btn-sm(href=`/citta/${citta.geoId}`) Dettagli →
+                  else
+                    span.gc-muted —
+
+    else
+      div.gc-alert Nessuna città trovata. Controlla il codice ISO (es. IT, FR, DE).
+
+    //- Legenda
+    div.gc-legend.mt-3
+      span.gc-muted.fw-semibold Legenda AQI:
+      span.gc-badge.gc-badge-success 0–20 Buona
+      span.gc-badge.gc-badge-info 21–40 Discreta
+      span.gc-badge.gc-badge-warning 41–60 Moderata
+      span.gc-badge.gc-badge-danger 61+ Scarsa/Pessima
+      span.ms-auto.gc-muted.small
+        | Fonte:&nbsp;
+        a(href="https://open-meteo.com" target="_blank") Open-Meteo
+        |  · GeoDB

@@ -2,52 +2,70 @@ extends layout
 
 block content
 
-  div.container.text-center
-    h1.display-3.mb-4 Green City 🌍
+  div.hero-wrapper
+    div.hero-bg
+    div.hero-content
+      div.hero-badge
+        span.badge-dot
+        span Dati in tempo reale
+      h1.hero-title
+        | Green&nbsp;
+        span.title-accent City
+      p.hero-subtitle Scopri la qualità dell'aria in ogni angolo del mondo
+      div.search-wrapper
+        div.search-box.position-relative
+          i.fas.fa-search.search-icon
+          input.search-input(
+            type="text",
+            placeholder="Cerca una città...",
+            autocomplete="off"
+          )
+          div.suggestions
 
-    div.search-box.position-relative.d-inline-block.w-50
+      div.hero-stats
+        div.stat-item
+          span.stat-number 🟢
+          span.stat-label Buona ≤ 20
+        div.stat-item
+          span.stat-number 🔵
+          span.stat-label Discreta ≤ 40
+        div.stat-item
+          span.stat-number 🟡
+          span.stat-label Moderata ≤ 60
+        div.stat-item
+          span.stat-number 🟠
+          span.stat-label Scarsa ≤ 80
+        div.stat-item
+          span.stat-number 🔴
+          span.stat-label Pessima > 80
 
-      input.search-input.form-control(
-        type="text",
-        placeholder="Inserisci una città..."
-      )
+block scripts
+  script.
+    const input  = document.querySelector('.search-input');
+    const sugBox = document.querySelector('.suggestions');
+    let timeout;
 
-      div.suggestions.position-absolute.w-100.bg-white.border.mt-1
+    input.addEventListener('input', () => {
+      clearTimeout(timeout);
+      const query = input.value;
+      if (query.length < 2) { sugBox.innerHTML = ''; return; }
 
-    script.
-        const input = document.querySelector(".search-input");
-        const suggestions = document.querySelector(".suggestions");
-
-        let timeout;
-
-        input.addEventListener("input", () => {
-            clearTimeout(timeout);
-
-            const query = input.value;
-
-            if (query.length < 2) {
-            suggestions.innerHTML = "";
-            return;
-            }
-
-            timeout = setTimeout(async () => {
-            const res = await fetch(`/api/citta?q=${query}`);
-            const cities = await res.json();
-
-            suggestions.innerHTML = "";
-
-            cities.forEach(city => {
-                const div = document.createElement("div");
-                div.classList.add("p-2");
-                div.style.cursor = "pointer";
-                div.textContent = city.label;
-
-                div.addEventListener("click", () => {
-                window.location.href = `/citta/${encodeURIComponent(city.id)}`;
-                });
-
-                suggestions.appendChild(div);
-            });
-
-            }, 300);
+      timeout = setTimeout(async () => {
+        const res    = await fetch(`/api/citta?q=${encodeURIComponent(query)}`);
+        const cities = await res.json();
+        sugBox.innerHTML = '';
+        cities.forEach(city => {
+          const div = document.createElement('div');
+          div.className   = 'suggestion-item';
+          div.textContent = city.label;
+          div.addEventListener('click', () => {
+            window.location.href = `/citta/${encodeURIComponent(city.id)}`;
+          });
+          sugBox.appendChild(div);
         });
+      }, 300);
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.search-box')) sugBox.innerHTML = '';
+    });

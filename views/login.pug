@@ -2,27 +2,27 @@ extends layout
 
 block content
 
-  div.login-page
-    div.login-card
+  div.gc-auth-page
+    div.gc-auth-card
 
-      h2 Login
-      p.login-subtitle Accedi al tuo account Green City
+      h2.gc-auth-title Login
+      p.gc-auth-subtitle Accedi al tuo account Green City
 
       if errore
-        div.login-error #{errore}
+        div.gc-auth-error #{errore}
 
       form(action="/login" method="POST")
 
-        div.form-group
+        div.gc-form-group
           label Email
           input(type="email" name="email" placeholder="Inserisci la tua email" required)
 
-        div.form-group
+        div.gc-form-group
           label Password
           input(type="password" name="password" placeholder="Inserisci la password" required)
 
-        button.login-btn(type="submit") Accedi
+        button.gc-btn(type="submit") Accedi
 
-      p.register-text
-        | Non sei ancora registrato? 
+      p.gc-auth-footer
+        | Non sei ancora registrato?&nbsp;
         a(href="/registrazione") Registrati
