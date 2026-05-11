@@ -10,5 +10,29 @@
     "nome": "alberto",
     "email": "salberto.sassi@itis.pr.it",
     "password": "ciao"
+  },
+  {
+    "id": 1778483617058,
+    "nome": "pluto",
+    "email": "pluto@gmail.com",
+    "password": "1234"
+  },
+  {
+    "id": 1778483830734,
+    "nome": "albion",
+    "email": "albion@gmail.com",
+    "password": "12345"
+  },
+  {
+    "id": 1778484060715,
+    "nome": "ilyassLaknitri",
+    "email": "ilyassLaknitri2007@gmail.com",
+    "password": "123456"
+  },
+  {
+    "id": 1778484792444,
+    "nome": "laknitriIlyass07",
+    "email": "lakIlyass07@gmail.com",
+    "password": "1234"
   }
 ]

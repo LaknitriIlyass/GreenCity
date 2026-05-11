@@ -1,0 +1,8 @@
+mixin authCard(title)
+
+  div.container.d-flex.justify-content-center.align-items-center(style="min-height: 80vh;")
+    div.card.shadow-lg.p-4(style="width: 350px; border-radius: 15px;")
+
+      h3.text-center.mb-4 #{title}
+
+      block

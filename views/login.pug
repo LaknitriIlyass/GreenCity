@@ -2,27 +2,41 @@ extends layout
 
 block content
 
-  div.login-page
-    div.login-card
+  div.container.d-flex.justify-content-center.align-items-center(style="min-height: 80vh;")
 
-      h2 Login
-      p.login-subtitle Accedi al tuo account Green City
+    div.card.shadow-lg.p-4(style="width: 350px; border-radius: 15px;")
 
-      if errore
-        div.login-error #{errore}
+      h3.text-center.mb-4 Login
 
-      form(action="/login" method="POST")
+      div.mb-3
+        label.form-label Username
+        input#username.form-control(type="text", placeholder="Inserisci username")
 
-        div.form-group
-          label Email
-          input(type="email" name="email" placeholder="Inserisci la tua email" required)
+      div.mb-3
+        label.form-label Password
+        input#password.form-control(type="password", placeholder="Inserisci password")
 
-        div.form-group
-          label Password
-          input(type="password" name="password" placeholder="Inserisci la password" required)
+      button.btn.btn-primary.w-100.mt-2(onclick="login()") Accedi
 
-        button.login-btn(type="submit") Accedi
-
-      p.register-text
-        | Non sei ancora registrato? 
+      p.text-center.mt-3
+        | Non hai un account? 
         a(href="/registrazione") Registrati
+  script.
+    async function login() {
+
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+        credentials: "include"
+      });
+
+      if (res.ok) {
+        window.location.href = "/";
+      } else {
+        alert("Credenziali errate");
+      }
+    }
